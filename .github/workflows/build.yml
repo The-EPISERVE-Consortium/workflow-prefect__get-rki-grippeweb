@@ -6,8 +6,6 @@ on:
       - main
 
 env:
-  # REPLACE: set OWNER and REPO to your GitHub username / organisation and repo name,
-  # or remove this block and rely solely on the dynamic values derived below.
   REGISTRY: ghcr.io
 
 jobs:
@@ -19,20 +17,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
-          # REPLACE: swap <OWNER>/<REPO> with your actual GitHub owner and repo,
-          # or leave as-is — docker/metadata-action resolves them from github.repository.
           images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
             type=raw,value=latest
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -40,7 +36,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
