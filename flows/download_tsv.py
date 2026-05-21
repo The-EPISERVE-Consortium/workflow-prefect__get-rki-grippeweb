@@ -59,21 +59,32 @@ def store_to_mariadb(df: pd.DataFrame, table: str) -> None:
         df: The DataFrame to persist.
         table: Target table name in the database.
     """
+    try:
+        logger = get_run_logger()
+    except MissingContextError:
+        logger = logging.getLogger(__name__)
+
+    db = os.environ.get("MARIADB_DATABASE", "test")
+    host = os.environ["MARIADB_HOST"]
+    logger.info("Connecting to %s/%s", host, db)
+
     conn = pymysql.connect(
-        host=os.environ["MARIADB_HOST"],
+        host=host,
         user=os.environ["MARIADB_USER"],
         password=os.environ["MARIADB_PASSWORD"],
-        database=os.environ.get("MARIADB_DATABASE", "test"),
+        database=db,
     )
     try:
         with conn.cursor() as cursor:
             cols = ", ".join(f"`{col}` TEXT" for col in df.columns)
             cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
             cursor.execute(f"CREATE TABLE `{table}` ({cols})")
+            logger.info("Inserting %d rows into `%s`", len(df), table)
             placeholders = ", ".join(["%s"] * len(df.columns))
             rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
             cursor.executemany(f"INSERT INTO `{table}` VALUES ({placeholders})", rows)
         conn.commit()
+        logger.info("Done. Table `%s` now has %d rows and %d columns.", table, len(df), len(df.columns))
     finally:
         conn.close()
 
