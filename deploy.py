@@ -49,12 +49,20 @@ if __name__ == "__main__":
         },
         job_variables={
             "image": DOCKER_IMAGE,
-            "env": {
-                "MARIADB_HOST": "mariadb.default.svc.cluster.local",
-                "MARIADB_USER": "mariadb",
-                "MARIADB_DATABASE": "test",
-                "MARIADB_PASSWORD": os.environ["MARIADB_PASSWORD"],
-            },
+            "env": [
+                {"name": "MARIADB_HOST", "value": "mariadb.default.svc.cluster.local"},
+                {"name": "MARIADB_USER", "value": "mariadb"},
+                {"name": "MARIADB_DATABASE", "value": "test"},
+                {
+                    "name": "MARIADB_PASSWORD",
+                    "valueFrom": {
+                        "secretKeyRef": {
+                            "name": "mariadb-credentials",
+                            "key": "mariadb-password",
+                        }
+                    },
+                },
+            ],
         },
     )
     print(f"Deployment '{DEPLOYMENT_NAME}' applied successfully.")
