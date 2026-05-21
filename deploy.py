@@ -8,6 +8,7 @@ Run this script once (or in CI) after the Docker image has been pushed to GHCR:
 import os
 
 import prefect
+from prefect.runner.storage import GitRepository
 from flows.download_tsv import download_tsv, RKI_URL, DEFAULT_PATH
 
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__get-rki-grippeweb"
@@ -38,7 +39,7 @@ prefect.settings.PREFECT_API_URL.value = prefect_api_url  # type: ignore[attr-de
 
 if __name__ == "__main__":
     deployment = download_tsv.from_source(
-        source=GITHUB_REPO_URL,
+        source=GitRepository(url=GITHUB_REPO_URL, branch="main"),
         entrypoint="flows/download_tsv.py:download_tsv",
     ).deploy(
         name=DEPLOYMENT_NAME,
