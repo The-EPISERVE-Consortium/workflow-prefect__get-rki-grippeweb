@@ -7,7 +7,6 @@ Run this script once (or in CI) after the Docker image has been pushed to GHCR:
 
 import os
 
-import prefect
 from prefect.runner.storage import GitRepository
 from flows.download_tsv import download_tsv, RKI_URL, DEFAULT_PATH
 
@@ -31,7 +30,7 @@ if not prefect_api_url:
         "  export PREFECT_API_URL=https://<your-prefect-server>/api"
     )
 
-prefect.settings.PREFECT_API_URL.value = prefect_api_url  # type: ignore[attr-defined]
+os.environ["PREFECT_API_URL"] = prefect_api_url
 
 # ---------------------------------------------------------------------------
 # Build and apply the deployment
