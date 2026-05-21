@@ -4,13 +4,14 @@ Tasks are called via .fn() to bypass Prefect orchestration so the tests run
 without a live Prefect server.
 """
 
+import os
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 
-from flows.download_tsv import fetch_tsv, save_locally
+from flows.download_tsv import fetch_tsv, save_locally, store_to_mariadb
 
 
 SAMPLE_DF = pd.DataFrame(
@@ -50,3 +51,26 @@ def test_save_locally_content_is_valid_tsv(tmp_path: Path):
 
     reloaded = pd.read_csv(dest, sep="\t")
     pd.testing.assert_frame_equal(reloaded, SAMPLE_DF)
+
+
+@patch.dict(
+    os.environ,
+    {
+        "MARIADB_HOST": "localhost",
+        "MARIADB_USER": "user",
+        "MARIADB_PASSWORD": "pass",
+        "MARIADB_DATABASE": "db",
+    },
+)
+def test_store_to_mariadb_calls_to_sql():
+    """store_to_mariadb should call to_sql with the correct arguments."""
+    mock_engine = MagicMock()
+
+    with patch("flows.download_tsv.create_engine", return_value=mock_engine):
+        with patch.object(SAMPLE_DF, "to_sql") as mock_to_sql:
+            store_to_mariadb.fn(SAMPLE_DF, "grippeweb")
+
+    mock_to_sql.assert_called_once_with(
+        "grippeweb", mock_engine, if_exists="replace", index=False
+    )
+    mock_engine.dispose.assert_called_once()

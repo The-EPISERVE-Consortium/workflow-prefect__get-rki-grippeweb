@@ -49,6 +49,12 @@ if __name__ == "__main__":
         },
         job_variables={
             "image": DOCKER_IMAGE,
+            "env": {
+                "MARIADB_HOST": "mariadb.default.svc.cluster.local",
+                "MARIADB_USER": "mariadb",
+                "MARIADB_DATABASE": "test",
+                "MARIADB_PASSWORD": os.environ["MARIADB_PASSWORD"],
+            },
         },
     )
     print(f"Deployment '{DEPLOYMENT_NAME}' applied successfully.")

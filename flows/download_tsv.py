@@ -1,8 +1,10 @@
 """Prefect flow for downloading and saving the RKI GrippeWeb weekly report TSV."""
 
 import logging
+import os
 
 import pandas as pd
+from sqlalchemy import create_engine
 from prefect import flow, task, get_run_logger
 from prefect.exceptions import MissingContextError
 
@@ -46,6 +48,28 @@ def save_locally(df: pd.DataFrame, path: str) -> None:
     df.to_csv(path, sep="\t", index=False)
 
 
+@task
+def store_to_mariadb(df: pd.DataFrame, table: str) -> None:
+    """Write a DataFrame to a MariaDB table, replacing it if it already exists.
+
+    Connection parameters are read from environment variables:
+    MARIADB_USER, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_DATABASE.
+
+    Args:
+        df: The DataFrame to persist.
+        table: Target table name in the database.
+    """
+    url = (
+        f"mysql+pymysql://{os.environ['MARIADB_USER']}:{os.environ['MARIADB_PASSWORD']}"
+        f"@{os.environ['MARIADB_HOST']}/{os.environ['MARIADB_DATABASE']}"
+    )
+    engine = create_engine(url)
+    try:
+        df.to_sql(table, engine, if_exists="replace", index=False)
+    finally:
+        engine.dispose()
+
+
 @flow
 def download_tsv(url: str = RKI_URL, path: str = DEFAULT_PATH) -> None:
     """Fetch the GrippeWeb TSV from a URL and save it locally.
@@ -56,6 +80,7 @@ def download_tsv(url: str = RKI_URL, path: str = DEFAULT_PATH) -> None:
     """
     df = fetch_tsv(url)
     save_locally(df, path)
+    store_to_mariadb(df, "grippeweb")
 
 
 if __name__ == "__main__":
