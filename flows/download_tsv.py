@@ -4,7 +4,7 @@ import logging
 import os
 
 import pandas as pd
-from sqlalchemy import create_engine
+import pymysql
 from prefect import flow, task, get_run_logger
 from prefect.exceptions import MissingContextError
 
@@ -59,15 +59,23 @@ def store_to_mariadb(df: pd.DataFrame, table: str) -> None:
         df: The DataFrame to persist.
         table: Target table name in the database.
     """
-    url = (
-        f"mysql+pymysql://{os.environ['MARIADB_USER']}:{os.environ['MARIADB_PASSWORD']}"
-        f"@{os.environ['MARIADB_HOST']}/{os.environ['MARIADB_DATABASE']}"
+    conn = pymysql.connect(
+        host=os.environ["MARIADB_HOST"],
+        user=os.environ["MARIADB_USER"],
+        password=os.environ["MARIADB_PASSWORD"],
+        database=os.environ.get("MARIADB_DATABASE", "test"),
     )
-    engine = create_engine(url)
     try:
-        df.to_sql(table, engine, if_exists="replace", index=False)
+        with conn.cursor() as cursor:
+            cols = ", ".join(f"`{col}` TEXT" for col in df.columns)
+            cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
+            cursor.execute(f"CREATE TABLE `{table}` ({cols})")
+            placeholders = ", ".join(["%s"] * len(df.columns))
+            rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
+            cursor.executemany(f"INSERT INTO `{table}` VALUES ({placeholders})", rows)
+        conn.commit()
     finally:
-        engine.dispose()
+        conn.close()
 
 
 @flow

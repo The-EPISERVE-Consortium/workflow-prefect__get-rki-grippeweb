@@ -1,5 +1,4 @@
 prefect>=3.7.1
 pandas
-sqlalchemy
 pymysql
 pytest

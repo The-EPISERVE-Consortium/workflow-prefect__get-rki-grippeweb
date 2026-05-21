@@ -62,15 +62,20 @@ def test_save_locally_content_is_valid_tsv(tmp_path: Path):
         "MARIADB_DATABASE": "db",
     },
 )
-def test_store_to_mariadb_calls_to_sql():
-    """store_to_mariadb should call to_sql with the correct arguments."""
-    mock_engine = MagicMock()
+def test_store_to_mariadb_writes_and_commits():
+    """store_to_mariadb should create the table, insert rows, and commit."""
+    mock_cursor = MagicMock()
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+    mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
 
-    with patch("flows.download_tsv.create_engine", return_value=mock_engine):
-        with patch.object(SAMPLE_DF, "to_sql") as mock_to_sql:
-            store_to_mariadb.fn(SAMPLE_DF, "grippeweb")
+    with patch("flows.download_tsv.pymysql.connect", return_value=mock_conn):
+        store_to_mariadb.fn(SAMPLE_DF, "grippeweb")
 
-    mock_to_sql.assert_called_once_with(
-        "grippeweb", mock_engine, if_exists="replace", index=False
-    )
-    mock_engine.dispose.assert_called_once()
+    assert mock_cursor.execute.call_count == 2  # DROP + CREATE
+    mock_cursor.executemany.assert_called_once()
+    call_args = mock_cursor.executemany.call_args
+    assert "grippeweb" in call_args.args[0]
+    assert len(call_args.args[1]) == len(SAMPLE_DF)
+    mock_conn.commit.assert_called_once()
+    mock_conn.close.assert_called_once()
