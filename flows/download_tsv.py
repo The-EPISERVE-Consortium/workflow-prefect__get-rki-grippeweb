@@ -30,7 +30,8 @@ def fetch_tsv(url: str) -> pd.DataFrame:
         logger = logging.getLogger(__name__)
     logger.info("Start download %s", url)
     df = pd.read_csv(url, sep="\t")
-    logger.info("Download done.")
+    size_kb = len(df.to_csv(sep="\t", index=False).encode()) / 1024
+    logger.info("Download done. Downloaded %.1f KB", size_kb)
     return df
 
 
