@@ -1,7 +1,10 @@
 """Prefect flow for downloading and saving the RKI GrippeWeb weekly report TSV."""
 
+import logging
+
 import pandas as pd
 from prefect import flow, task, get_run_logger
+from prefect.exceptions import MissingContextError
 
 RKI_URL = (
     "https://raw.githubusercontent.com/robert-koch-institut/"
@@ -21,7 +24,10 @@ def fetch_tsv(url: str) -> pd.DataFrame:
     Returns:
         A pandas DataFrame containing the parsed TSV content.
     """
-    logger = get_run_logger()
+    try:
+        logger = get_run_logger()
+    except MissingContextError:
+        logger = logging.getLogger(__name__)
     logger.info("Start download %s", url)
     df = pd.read_csv(url, sep="\t")
     logger.info("Download done.")
