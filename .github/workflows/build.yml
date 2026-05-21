@@ -47,5 +47,5 @@ jobs:
         run: |
           docker run --rm \
             --workdir /app \
-            ${{ env.REGISTRY }}/${{ github.repository }}:latest \
+            ${{ env.REGISTRY }}/${GITHUB_REPOSITORY,,}:latest \
             python -m pytest tests/ -v
