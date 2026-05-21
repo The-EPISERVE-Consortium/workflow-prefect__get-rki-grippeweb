@@ -49,6 +49,7 @@ if __name__ == "__main__":
         },
         job_variables={
             "image": DOCKER_IMAGE,
+            "image_pull_policy": "Always",
             "env": {
                 "MARIADB_HOST": "mariadb.default.svc.cluster.local",
                 "MARIADB_USER": "mariadb",
