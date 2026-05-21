@@ -1,7 +1,9 @@
 """Prefect flow for downloading and saving the RKI GrippeWeb weekly report TSV."""
 
+from datetime import datetime
+
 import pandas as pd
-from prefect import flow, task
+from prefect import flow, task, get_run_logger
 
 RKI_URL = (
     "https://raw.githubusercontent.com/robert-koch-institut/"
@@ -21,7 +23,11 @@ def fetch_tsv(url: str) -> pd.DataFrame:
     Returns:
         A pandas DataFrame containing the parsed TSV content.
     """
-    return pd.read_csv(url, sep="\t")
+    logger = get_run_logger()
+    logger.info("%s Start download %s", datetime.now().strftime("%H:%M:%S.%f")[:-3], url)
+    df = pd.read_csv(url, sep="\t")
+    logger.info("%s Download done.", datetime.now().strftime("%H:%M:%S.%f")[:-3])
+    return df
 
 
 @task
