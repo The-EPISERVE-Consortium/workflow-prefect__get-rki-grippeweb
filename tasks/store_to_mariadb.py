@@ -9,18 +9,17 @@ from tasks._logging import get_logger
 
 
 @task
-def store_to_mariadb(df, table: str) -> None:
+def store_to_mariadb(df, table: str, database: str) -> None:
     """Write a DataFrame to a MariaDB table, replacing it if it already exists."""
     logger = get_logger(__name__)
-    db = os.environ.get("MARIADB_DATABASE", "test")
     host = os.environ["MARIADB_HOST"]
-    logger.info("Connecting to %s/%s", host, db)
+    logger.info("Connecting to %s/%s", host, database)
 
     conn = pymysql.connect(
         host=host,
         user=os.environ["MARIADB_USER"],
         password=os.environ["MARIADB_PASSWORD"],
-        database=db,
+        database=database,
     )
     try:
         with conn.cursor() as cursor:

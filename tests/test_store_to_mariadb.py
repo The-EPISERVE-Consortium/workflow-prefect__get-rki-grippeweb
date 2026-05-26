@@ -22,7 +22,6 @@ SAMPLE_DF = pd.DataFrame(
         "MARIADB_HOST": "localhost",
         "MARIADB_USER": "user",
         "MARIADB_PASSWORD": "pass",
-        "MARIADB_DATABASE": "db",
     },
 )
 def test_store_to_mariadb_writes_and_commits():
@@ -33,7 +32,7 @@ def test_store_to_mariadb_writes_and_commits():
     mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
 
     with patch("tasks.store_to_mariadb.pymysql.connect", return_value=mock_conn):
-        store_to_mariadb.fn(SAMPLE_DF, "grippeweb")
+        store_to_mariadb.fn(SAMPLE_DF, "grippeweb", "db")
 
     assert mock_cursor.execute.call_count == 2
     mock_cursor.executemany.assert_called_once()

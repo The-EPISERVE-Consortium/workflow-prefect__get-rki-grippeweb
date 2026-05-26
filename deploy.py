@@ -9,7 +9,15 @@ import os
 from json import JSONDecodeError
 
 from prefect.runner.storage import GitRepository
-from flow.grippeweb_flow import run_grippeweb, RKI_URL, DEFAULT_PATH
+from flow.grippeweb_flow import (
+    DEFAULT_LAKEFS_BRANCH,
+    DEFAULT_LAKEFS_OBJECT_PATH,
+    DEFAULT_LAKEFS_REPO,
+    DEFAULT_MARIADB_DATABASE,
+    DEFAULT_PATH,
+    RKI_URL,
+    run_grippeweb,
+)
 
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__get-rki-grippeweb"
 
@@ -48,6 +56,10 @@ if __name__ == "__main__":
             parameters={
                 "url": RKI_URL,
                 "path": DEFAULT_PATH,
+                "lakefs_repo": DEFAULT_LAKEFS_REPO,
+                "lakefs_branch": DEFAULT_LAKEFS_BRANCH,
+                "lakefs_object_path": DEFAULT_LAKEFS_OBJECT_PATH,
+                "mariadb_database": DEFAULT_MARIADB_DATABASE,
             },
             job_variables={
                 "image": DOCKER_IMAGE,
@@ -55,7 +67,6 @@ if __name__ == "__main__":
                 "env": {
                     "MARIADB_HOST": "mariadb.default.svc.cluster.local",
                     "MARIADB_USER": "mariadb",
-                    "MARIADB_DATABASE": "test",
                 },
             },
         )

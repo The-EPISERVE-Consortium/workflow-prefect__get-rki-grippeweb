@@ -7,12 +7,11 @@ from prefect import task
 
 from tasks._logging import get_logger
 
-LAKEFS_REPO = "sandbox"
-LAKEFS_BRANCH = "main"
-LAKEFS_OBJECT_PATH = "RAW/RKI/grippeweb.tsv"
 LAKEFS_COMMIT_MESSAGE = "new version from RKI"
-def _get_lakefs_branch():
-    """Create a lakeFS branch handle from environment-based connection settings."""
+
+
+def _get_lakefs_repository(repo: str):
+    """Create a lakeFS repository handle from environment-based connection settings."""
     try:
         import lakefs
         from lakefs.client import Client
@@ -24,27 +23,33 @@ def _get_lakefs_branch():
         username=os.environ["LAKEFS_ACCESS_KEY"],
         password=os.environ["LAKEFS_SECRET_KEY"],
     )
-    return lakefs.repository(LAKEFS_REPO, client=client).branch(LAKEFS_BRANCH)
+    return lakefs.repository(repo, client=client)
 
 
 @task
-def commit_to_lakefs(path: str) -> None:
+def commit_to_lakefs(
+    path: str,
+    repo: str,
+    branch: str,
+    object_path: str,
+    commit_message: str = LAKEFS_COMMIT_MESSAGE,
+) -> None:
     """Upload the saved TSV to lakeFS and create a commit on the target branch."""
     logger = get_logger(__name__)
-    branch = _get_lakefs_branch()
+    lakefs_branch = _get_lakefs_repository(repo).branch(branch)
     local_path = Path(path)
 
-    logger.info("Uploading %s to lakeFS %s/%s/%s", local_path, LAKEFS_REPO, LAKEFS_BRANCH, LAKEFS_OBJECT_PATH)
+    logger.info("Uploading %s to lakeFS %s/%s/%s", local_path, repo, branch, object_path)
     with local_path.open("rb") as infile:
-        branch.object(LAKEFS_OBJECT_PATH).upload(
+        lakefs_branch.object(object_path).upload(
             data=infile.read(),
             content_type="text/tab-separated-values",
         )
 
-    changes = list(branch.uncommitted())
+    changes = list(lakefs_branch.uncommitted())
     if not changes:
-        logger.info("No uncommitted lakeFS changes detected on %s/%s", LAKEFS_REPO, LAKEFS_BRANCH)
+        logger.info("No uncommitted lakeFS changes detected on %s/%s", repo, branch)
         return
 
-    ref = branch.commit(message=LAKEFS_COMMIT_MESSAGE)
-    logger.info("Committed lakeFS change %s on %s/%s", getattr(ref, "id", "<unknown>"), LAKEFS_REPO, LAKEFS_BRANCH)
+    ref = lakefs_branch.commit(message=commit_message)
+    logger.info("Committed lakeFS change %s on %s/%s", getattr(ref, "id", "<unknown>"), repo, branch)
