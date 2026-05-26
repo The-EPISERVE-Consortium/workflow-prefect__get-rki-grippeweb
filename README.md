@@ -36,6 +36,12 @@ Deploy the Germany COVID incidence dataset:
 PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_numbers_germany
 ```
 
+Deploy the state-level Germany COVID incidence dataset:
+
+```bash
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_numbers_states
+```
+
 Add more dataset deployments by creating additional modules under `deploy/` that call `deploy_dataset(...)` with a new parameter set.
 
 ## CI
