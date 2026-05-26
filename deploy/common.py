@@ -8,10 +8,6 @@ from prefect.runner.storage import GitRepository
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__dataset-downloader"
 DOCKER_IMAGE = "ghcr.io/the-episerve-consortium/workflow-prefect__dataset-downloader:latest"
 WORK_POOL_NAME = "kubernetes-pool"
-JOB_ENV = {
-    "MARIADB_HOST": "mariadb.default.svc.cluster.local",
-    "MARIADB_USER": "mariadb",
-}
 
 
 def deploy_dataset(flow_fn, deployment_name: str, parameters: dict[str, str]) -> None:
@@ -37,7 +33,6 @@ def deploy_dataset(flow_fn, deployment_name: str, parameters: dict[str, str]) ->
             job_variables={
                 "image": DOCKER_IMAGE,
                 "image_pull_policy": "Always",
-                "env": JOB_ENV,
             },
         )
     except JSONDecodeError as exc:
