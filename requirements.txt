@@ -1,4 +1,5 @@
 prefect>=3.7.1
 pandas
 pymysql
+lakefs
 pytest

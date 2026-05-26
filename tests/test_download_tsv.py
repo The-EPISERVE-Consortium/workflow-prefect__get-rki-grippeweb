@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from flows.download_tsv import fetch_tsv, save_locally, store_to_mariadb
+from flows.download_tsv import download_tsv, fetch_tsv, save_locally, store_to_mariadb
 
 
 SAMPLE_DF = pd.DataFrame(
@@ -79,3 +79,22 @@ def test_store_to_mariadb_writes_and_commits():
     assert len(call_args.args[1]) == len(SAMPLE_DF)
     mock_conn.commit.assert_called_once()
     mock_conn.close.assert_called_once()
+
+
+def test_download_tsv_runs_lakefs_step_after_local_save():
+    """download_tsv should save locally, then upload to lakeFS, then store in MariaDB."""
+    call_order = []
+
+    with (
+        patch("flows.download_tsv.fetch_tsv", return_value=SAMPLE_DF),
+        patch("flows.download_tsv.save_locally", side_effect=lambda df, path: call_order.append(("save", path))),
+        patch("flows.download_tsv.commit_to_lakefs", side_effect=lambda path: call_order.append(("lakefs", path))),
+        patch("flows.download_tsv.store_to_mariadb", side_effect=lambda df, table: call_order.append(("mariadb", table))),
+    ):
+        download_tsv(url="https://example.com/data.tsv", path="/tmp/grippeweb.tsv")
+
+    assert call_order == [
+        ("save", "/tmp/grippeweb.tsv"),
+        ("lakefs", "/tmp/grippeweb.tsv"),
+        ("mariadb", "grippeweb"),
+    ]

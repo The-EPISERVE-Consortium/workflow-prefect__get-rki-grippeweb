@@ -8,6 +8,8 @@ import pymysql
 from prefect import flow, task, get_run_logger
 from prefect.exceptions import MissingContextError
 
+from flows.commit_to_lakefs import commit_to_lakefs
+
 RKI_URL = (
     "https://raw.githubusercontent.com/robert-koch-institut/"
     "GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/"
@@ -99,6 +101,7 @@ def download_tsv(url: str = RKI_URL, path: str = DEFAULT_PATH) -> None:
     """
     df = fetch_tsv(url)
     save_locally(df, path)
+    commit_to_lakefs(path)
     store_to_mariadb(df, "grippeweb")
 
 
