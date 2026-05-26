@@ -36,6 +36,7 @@ def test_run_dataset_runs_steps_in_order():
     ):
         run_dataset(
             source_url="https://example.com/data.tsv",
+            source_delimiter="\t",
             local_path="/tmp/grippeweb.tsv",
             lakefs_repo="sandbox",
             lakefs_branch="main",
@@ -57,6 +58,7 @@ def test_run_dataset_rejects_blank_required_parameters():
     with pytest.raises(ValueError, match="Missing required flow parameter\\(s\\): source_url"):
         run_dataset(
             source_url="",
+            source_delimiter="\t",
             local_path="/tmp/grippeweb.tsv",
             lakefs_repo="sandbox",
             lakefs_branch="main",

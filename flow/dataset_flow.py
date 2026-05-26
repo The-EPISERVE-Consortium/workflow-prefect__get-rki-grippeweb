@@ -10,7 +10,7 @@ from tasks.store_to_mariadb import store_to_mariadb
 
 def _validate_required_parameters(params: dict[str, str]) -> None:
     """Raise a clear error if a required flow parameter is missing or blank."""
-    missing = [name for name, value in params.items() if not str(value).strip()]
+    missing = [name for name, value in params.items() if value is None or value == ""]
     if missing:
         missing_list = ", ".join(sorted(missing))
         raise ValueError(
@@ -22,6 +22,7 @@ def _validate_required_parameters(params: dict[str, str]) -> None:
 @flow
 def run_dataset(
     source_url: str,
+    source_delimiter: str,
     local_path: str,
     lakefs_repo: str,
     lakefs_branch: str,
@@ -34,6 +35,7 @@ def run_dataset(
     _validate_required_parameters(
         {
             "source_url": source_url,
+            "source_delimiter": source_delimiter,
             "local_path": local_path,
             "lakefs_repo": lakefs_repo,
             "lakefs_branch": lakefs_branch,
@@ -43,7 +45,7 @@ def run_dataset(
             "mariadb_database": mariadb_database,
         }
     )
-    df = download_tsv(source_url)
+    df = download_tsv(source_url, source_delimiter)
     save_locally(df, local_path)
     commit_to_lakefs(local_path, lakefs_repo, lakefs_branch, lakefs_object_path, lakefs_commit_message)
     store_to_mariadb(df, mariadb_table, mariadb_database)

@@ -1,22 +1,22 @@
-"""Prefect deployment definition for the RKI GrippeWeb dataset."""
+"""Prefect deployment definition for the RKI Germany COVID incidence dataset."""
 
 from deploy.common import deploy_dataset
 from flow.dataset_flow import run_dataset
 
-DEPLOYMENT_NAME = "grippeweb-downloader"
+DEPLOYMENT_NAME = "corona_numbers_germany"
 PARAMETERS = {
     "source_url": (
         "https://raw.githubusercontent.com/robert-koch-institut/"
-        "GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/"
-        "GrippeWeb_Daten_des_Wochenberichts.tsv"
+        "COVID-19_7-Tage-Inzidenz_in_Deutschland/refs/heads/main/"
+        "COVID-19-Faelle_7-Tage-Inzidenz_Deutschland.csv"
     ),
-    "source_delimiter": "\t",
-    "local_path": "/tmp/grippeweb.tsv",
+    "source_delimiter": ",",
+    "local_path": "/tmp/covid_germany.tsv",
     "lakefs_repo": "sandbox",
     "lakefs_branch": "main",
-    "lakefs_object_path": "RAW/RKI/grippeweb.tsv",
+    "lakefs_object_path": "RAW/RKI/covid_germany.tsv",
     "lakefs_commit_message": "new version from RKI",
-    "mariadb_table": "grippeweb",
+    "mariadb_table": "corona_numbers_germany",
     "mariadb_database": "test",
 }
 

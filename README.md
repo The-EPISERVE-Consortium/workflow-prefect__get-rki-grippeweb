@@ -24,9 +24,19 @@ Run the generic flow directly by supplying all required parameters from Python. 
 
 ## Deploy
 
+Deploy the GrippeWeb dataset:
+
 ```bash
 PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.grippeweb
 ```
+
+Deploy the Germany COVID incidence dataset:
+
+```bash
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_numbers_germany
+```
+
+Add more dataset deployments by creating additional modules under `deploy/` that call `deploy_dataset(...)` with a new parameter set.
 
 ## CI
 
