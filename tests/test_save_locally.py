@@ -1,10 +1,10 @@
-"""Unit tests for flows/save_locally.py."""
+"""Unit tests for tasks/save_locally.py."""
 
 from pathlib import Path
 
 import pandas as pd
 
-from flows.save_locally import save_locally
+from tasks.save_locally import save_locally
 
 
 SAMPLE_DF = pd.DataFrame(

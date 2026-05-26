@@ -1,10 +1,10 @@
-"""Unit tests for flows/commit_to_lakefs.py."""
+"""Unit tests for tasks/commit_to_lakefs.py."""
 
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from flows.commit_to_lakefs import LAKEFS_COMMIT_MESSAGE, LAKEFS_OBJECT_PATH, commit_to_lakefs
+from tasks.commit_to_lakefs import LAKEFS_COMMIT_MESSAGE, LAKEFS_OBJECT_PATH, commit_to_lakefs
 
 
 def test_commit_to_lakefs_uploads_file_and_commits(tmp_path: Path):
@@ -18,7 +18,7 @@ def test_commit_to_lakefs_uploads_file_and_commits(tmp_path: Path):
     mock_branch.uncommitted.return_value = [SimpleNamespace(path=LAKEFS_OBJECT_PATH)]
     mock_branch.commit.return_value = SimpleNamespace(id="commit-id")
 
-    with patch("flows.commit_to_lakefs._get_lakefs_branch", return_value=mock_branch):
+    with patch("tasks.commit_to_lakefs._get_lakefs_branch", return_value=mock_branch):
         commit_to_lakefs.fn(str(local_file))
 
     mock_branch.object.assert_called_once_with(LAKEFS_OBJECT_PATH)
@@ -38,7 +38,7 @@ def test_commit_to_lakefs_skips_commit_when_no_changes(tmp_path: Path):
     mock_branch.object.return_value = MagicMock()
     mock_branch.uncommitted.return_value = []
 
-    with patch("flows.commit_to_lakefs._get_lakefs_branch", return_value=mock_branch):
+    with patch("tasks.commit_to_lakefs._get_lakefs_branch", return_value=mock_branch):
         commit_to_lakefs.fn(str(local_file))
 
     mock_branch.commit.assert_not_called()

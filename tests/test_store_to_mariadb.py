@@ -1,11 +1,11 @@
-"""Unit tests for flows/store_to_mariadb.py."""
+"""Unit tests for tasks/store_to_mariadb.py."""
 
 import os
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from flows.store_to_mariadb import store_to_mariadb
+from tasks.store_to_mariadb import store_to_mariadb
 
 
 SAMPLE_DF = pd.DataFrame(
@@ -32,7 +32,7 @@ def test_store_to_mariadb_writes_and_commits():
     mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
     mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
 
-    with patch("flows.store_to_mariadb.pymysql.connect", return_value=mock_conn):
+    with patch("tasks.store_to_mariadb.pymysql.connect", return_value=mock_conn):
         store_to_mariadb.fn(SAMPLE_DF, "grippeweb")
 
     assert mock_cursor.execute.call_count == 2

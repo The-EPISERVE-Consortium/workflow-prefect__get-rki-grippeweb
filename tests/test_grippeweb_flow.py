@@ -1,10 +1,10 @@
-"""Unit tests for flows/grippeweb_flow.py."""
+"""Unit tests for flow/grippeweb_flow.py."""
 
 from unittest.mock import patch
 
 import pandas as pd
 
-from flows.grippeweb_flow import run_grippeweb
+from flow.grippeweb_flow import run_grippeweb
 
 
 SAMPLE_DF = pd.DataFrame(
@@ -20,10 +20,10 @@ def test_run_grippeweb_runs_steps_in_order():
     call_order = []
 
     with (
-        patch("flows.grippeweb_flow.download_tsv", return_value=SAMPLE_DF),
-        patch("flows.grippeweb_flow.save_locally", side_effect=lambda df, path: call_order.append(("save", path))),
-        patch("flows.grippeweb_flow.commit_to_lakefs", side_effect=lambda path: call_order.append(("lakefs", path))),
-        patch("flows.grippeweb_flow.store_to_mariadb", side_effect=lambda df, table: call_order.append(("mariadb", table))),
+        patch("flow.grippeweb_flow.download_tsv", return_value=SAMPLE_DF),
+        patch("flow.grippeweb_flow.save_locally", side_effect=lambda df, path: call_order.append(("save", path))),
+        patch("flow.grippeweb_flow.commit_to_lakefs", side_effect=lambda path: call_order.append(("lakefs", path))),
+        patch("flow.grippeweb_flow.store_to_mariadb", side_effect=lambda df, table: call_order.append(("mariadb", table))),
     ):
         run_grippeweb(url="https://example.com/data.tsv", path="/tmp/grippeweb.tsv")
 

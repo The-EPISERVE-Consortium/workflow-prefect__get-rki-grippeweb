@@ -9,7 +9,7 @@ import os
 from json import JSONDecodeError
 
 from prefect.runner.storage import GitRepository
-from flows.grippeweb_flow import run_grippeweb, RKI_URL, DEFAULT_PATH
+from flow.grippeweb_flow import run_grippeweb, RKI_URL, DEFAULT_PATH
 
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__get-rki-grippeweb"
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     try:
         deployment = run_grippeweb.from_source(
             source=GitRepository(url=GITHUB_REPO_URL, branch="main"),
-            entrypoint="flows/grippeweb_flow.py:run_grippeweb",
+            entrypoint="flow/grippeweb_flow.py:run_grippeweb",
         ).deploy(
             name=DEPLOYMENT_NAME,
             work_pool_name=WORK_POOL_NAME,

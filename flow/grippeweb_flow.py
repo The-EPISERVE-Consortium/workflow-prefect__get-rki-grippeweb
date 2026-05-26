@@ -2,10 +2,10 @@
 
 from prefect import flow
 
-from flows.commit_to_lakefs import commit_to_lakefs
-from flows.download_tsv import download_tsv
-from flows.save_locally import save_locally
-from flows.store_to_mariadb import store_to_mariadb
+from tasks.commit_to_lakefs import commit_to_lakefs
+from tasks.download_tsv import download_tsv
+from tasks.save_locally import save_locally
+from tasks.store_to_mariadb import store_to_mariadb
 
 RKI_URL = (
     "https://raw.githubusercontent.com/robert-koch-institut/"

@@ -6,8 +6,8 @@ Prefect 3 workflow that downloads the [RKI GrippeWeb weekly report](https://gith
 
 | Path | Purpose |
 |---|---|
-| `flows/grippeweb_flow.py` | Prefect flow orchestration |
-| `flows/*.py` | Individual Prefect tasks |
+| `flow/grippeweb_flow.py` | Prefect flow orchestration |
+| `tasks/*.py` | Individual Prefect tasks |
 | `tests/` | Unit tests (pytest) |
 | `deploy.py` | Programmatic deployment to `kubernetes-pool` |
 | `Dockerfile` | Image based on `prefecthq/prefect:3.7.1-python3.11` |
@@ -16,7 +16,7 @@ Prefect 3 workflow that downloads the [RKI GrippeWeb weekly report](https://gith
 
 ```bash
 pip install -r requirements.txt
-python flows/grippeweb_flow.py      # writes /tmp/grippeweb.tsv
+python flow/grippeweb_flow.py       # writes /tmp/grippeweb.tsv
 pytest tests/
 ```
 
