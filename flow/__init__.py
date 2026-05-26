@@ -1,1 +1,1 @@
-"""Flow entrypoints for the GrippeWeb Prefect workflow."""
+"""Flow entrypoints for the dataset downloader Prefect workflow."""

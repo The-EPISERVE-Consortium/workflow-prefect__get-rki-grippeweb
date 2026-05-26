@@ -5,8 +5,8 @@ from json import JSONDecodeError
 
 from prefect.runner.storage import GitRepository
 
-GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__get-rki-grippeweb"
-DOCKER_IMAGE = "ghcr.io/the-episerve-consortium/workflow-prefect__get-rki-grippeweb:latest"
+GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__dataset-downloader"
+DOCKER_IMAGE = "ghcr.io/the-episerve-consortium/workflow-prefect__dataset-downloader:latest"
 WORK_POOL_NAME = "kubernetes-pool"
 JOB_ENV = {
     "MARIADB_HOST": "mariadb.default.svc.cluster.local",

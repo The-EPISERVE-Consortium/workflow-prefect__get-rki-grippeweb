@@ -1,4 +1,4 @@
-# workflow-prefect__get-rki-grippeweb
+# workflow-prefect__dataset-downloader
 
 Prefect 3 workflow code for downloading TSV datasets from Git-backed sources, saving them locally, publishing them to lakeFS, and loading them into MariaDB. Dataset-specific deployments live under `deploy/`.
 
@@ -20,7 +20,7 @@ pip install -r requirements.txt
 pytest tests/
 ```
 
-Run the generic flow directly by supplying all required parameters from Python. For example, `deploy/grippeweb.py` shows the complete parameter set for the GrippeWeb dataset.
+Run the generic flow directly by supplying all required parameters from Python. For example, `deploy/grippeweb.py` shows the complete parameter set for one dataset-specific deployment.
 
 ## Deploy
 

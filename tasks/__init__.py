@@ -1,1 +1,1 @@
-"""Task modules for the GrippeWeb Prefect workflow."""
+"""Task modules for the dataset downloader Prefect workflow."""
