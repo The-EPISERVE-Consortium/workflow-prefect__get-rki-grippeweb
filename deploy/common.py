@@ -1,17 +1,32 @@
-"""Shared deployment helper for dataset-specific Prefect deployments."""
+"""Shared deployment helper for YAML-backed dataset deployments."""
 
 import os
+from pathlib import Path
 from json import JSONDecodeError
 
 from prefect.runner.storage import GitRepository
+import yaml
+
+from flow.dataset_flow import run_dataset
 
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__dataset-downloader"
 DOCKER_IMAGE = "ghcr.io/the-episerve-consortium/workflow-prefect__dataset-downloader:latest"
 WORK_POOL_NAME = "kubernetes-pool"
+REGISTRY_PATH = Path(__file__).with_name("datasets.yaml")
+REQUIRED_PARAMETERS = {
+    "source_url",
+    "source_delimiter",
+    "local_path",
+    "lakefs_repo",
+    "lakefs_branch",
+    "lakefs_object_path",
+    "lakefs_commit_message",
+    "mariadb_table",
+    "mariadb_database",
+}
 
 
-def deploy_dataset(flow_fn, deployment_name: str, parameters: dict[str, str]) -> None:
-    """Deploy a dataset-specific flow configuration to the shared work pool."""
+def _require_prefect_api_url() -> str:
     prefect_api_url = os.environ.get("PREFECT_API_URL")
     if not prefect_api_url:
         raise EnvironmentError(
@@ -19,11 +34,48 @@ def deploy_dataset(flow_fn, deployment_name: str, parameters: dict[str, str]) ->
             "Export it before running this script, e.g.:\n"
             "  export PREFECT_API_URL=https://<your-prefect-server>/api"
         )
+    return prefect_api_url
 
+
+def _load_registry() -> dict[str, dict]:
+    with REGISTRY_PATH.open(encoding="utf-8") as infile:
+        data = yaml.safe_load(infile) or {}
+
+    datasets = data.get("datasets")
+    if not isinstance(datasets, dict) or not datasets:
+        raise ValueError("deploy/datasets.yaml must contain a non-empty top-level 'datasets' mapping.")
+    return datasets
+
+
+def get_dataset_keys() -> list[str]:
+    return sorted(_load_registry().keys())
+
+
+def _validate_dataset_config(dataset_key: str, config: dict) -> tuple[str, dict[str, str]]:
+    if not isinstance(config, dict):
+        raise ValueError(f"Dataset '{dataset_key}' must be a mapping in deploy/datasets.yaml.")
+
+    deployment_name = config.get("deployment_name")
+    parameters = config.get("parameters")
+    if not deployment_name:
+        raise ValueError(f"Dataset '{dataset_key}' is missing 'deployment_name'.")
+    if not isinstance(parameters, dict):
+        raise ValueError(f"Dataset '{dataset_key}' must define a 'parameters' mapping.")
+
+    missing = sorted(REQUIRED_PARAMETERS.difference(parameters))
+    if missing:
+        missing_list = ", ".join(missing)
+        raise ValueError(f"Dataset '{dataset_key}' is missing required parameter(s): {missing_list}.")
+
+    return deployment_name, parameters
+
+
+def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_api_url: str) -> None:
+    """Deploy one dataset configuration to the shared work pool."""
     os.environ["PREFECT_API_URL"] = prefect_api_url
 
     try:
-        flow_fn.from_source(
+        run_dataset.from_source(
             source=GitRepository(url=GITHUB_REPO_URL, branch="main"),
             entrypoint="flow/dataset_flow.py:run_dataset",
         ).deploy(
@@ -40,5 +92,27 @@ def deploy_dataset(flow_fn, deployment_name: str, parameters: dict[str, str]) ->
             "PREFECT_API_URL does not appear to point to a Prefect API endpoint. "
             f"Got a non-JSON response from {prefect_api_url!r}. "
             "Use the Prefect API URL, for example: "
-            "'PREFECT_API_URL=https://prefect.medicalbioinformatics.de/api python -m deploy.grippeweb'."
+            "'PREFECT_API_URL=https://prefect.medicalbioinformatics.de/api python -m deploy grippeweb'."
         ) from exc
+
+
+def deploy_from_registry(dataset_key: str | None = None) -> None:
+    """Deploy one named dataset or all enabled datasets from deploy/datasets.yaml."""
+    datasets = _load_registry()
+    prefect_api_url = _require_prefect_api_url()
+
+    if dataset_key:
+        config = datasets.get(dataset_key)
+        if config is None:
+            available = ", ".join(sorted(datasets))
+            raise ValueError(f"Unknown dataset '{dataset_key}'. Available datasets: {available}")
+        deployment_name, parameters = _validate_dataset_config(dataset_key, config)
+        _deploy_dataset(deployment_name, parameters, prefect_api_url)
+        return
+
+    for key in sorted(datasets):
+        config = datasets[key]
+        if not config.get("enabled", True):
+            continue
+        deployment_name, parameters = _validate_dataset_config(key, config)
+        _deploy_dataset(deployment_name, parameters, prefect_api_url)

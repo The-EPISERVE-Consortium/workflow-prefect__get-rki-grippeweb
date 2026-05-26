@@ -2,4 +2,5 @@ prefect>=3.7.1
 pandas
 pymysql
 lakefs
+pyyaml
 pytest

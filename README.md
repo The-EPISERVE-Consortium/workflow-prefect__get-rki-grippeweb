@@ -1,6 +1,6 @@
 # workflow-prefect__dataset-downloader
 
-Prefect 3 workflow code for downloading TSV datasets from Git-backed sources, saving them locally, publishing them to lakeFS, and loading them into MariaDB. Dataset-specific deployments live under `deploy/`.
+Prefect 3 workflow code for downloading delimited datasets from Git-backed sources, saving them locally as TSV, publishing them to lakeFS, and loading them into MariaDB. Dataset deployment settings live in `deploy/datasets.yaml`.
 
 ## Structure
 
@@ -8,8 +8,9 @@ Prefect 3 workflow code for downloading TSV datasets from Git-backed sources, sa
 |---|---|
 | `flow/dataset_flow.py` | Generic Prefect flow orchestration |
 | `tasks/*.py` | Individual Prefect tasks |
-| `deploy/common.py` | Shared Prefect deployment helper |
-| `deploy/*.py` | Dataset-specific deployment modules |
+| `deploy/__main__.py` | Single deployment CLI entrypoint |
+| `deploy/common.py` | YAML-backed Prefect deployment helper |
+| `deploy/datasets.yaml` | Dataset-specific deployment parameters |
 | `tests/` | Unit tests (pytest) |
 | `Dockerfile` | Image based on `prefecthq/prefect:3.7.1-python3.11` |
 
@@ -20,35 +21,23 @@ pip install -r requirements.txt
 pytest tests/
 ```
 
-Run the generic flow directly by supplying all required parameters from Python. For example, `deploy/grippeweb.py` shows the complete parameter set for one dataset-specific deployment.
+Run the generic flow directly by supplying all required parameters from Python. The deployment registry in `deploy/datasets.yaml` shows the full parameter set for each dataset.
 
 ## Deploy
 
-Deploy the GrippeWeb dataset:
+Deploy one dataset by key:
 
 ```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.grippeweb
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy grippeweb
 ```
 
-Deploy the Germany COVID incidence dataset:
+Deploy all enabled datasets from `deploy/datasets.yaml`:
 
 ```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_incidence_germany
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy --all
 ```
 
-Deploy the state-level Germany COVID incidence dataset:
-
-```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_incidence_states
-```
-
-Deploy the aggregated wastewater surveillance dataset:
-
-```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.wastewater_surveillance_aggregate
-```
-
-Add more dataset deployments by creating additional modules under `deploy/` that call `deploy_dataset(...)` with a new parameter set.
+Add or change deployments by editing `deploy/datasets.yaml`.
 
 ## CI
 
