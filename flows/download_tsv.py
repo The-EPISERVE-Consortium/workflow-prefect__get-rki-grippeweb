@@ -1,109 +1,26 @@
-"""Prefect flow for downloading and saving the RKI GrippeWeb weekly report TSV."""
+"""Prefect task for downloading the RKI GrippeWeb TSV."""
 
 import logging
-import os
 
 import pandas as pd
-import pymysql
-from prefect import flow, task, get_run_logger
+from prefect import get_run_logger, task
 from prefect.exceptions import MissingContextError
 
-from flows.commit_to_lakefs import commit_to_lakefs
 
-RKI_URL = (
-    "https://raw.githubusercontent.com/robert-koch-institut/"
-    "GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/"
-    "GrippeWeb_Daten_des_Wochenberichts.tsv"
-)
-DEFAULT_PATH = "/tmp/grippeweb.tsv"
+def _get_logger() -> logging.Logger:
+    """Return a Prefect run logger when available, otherwise a standard logger."""
+    try:
+        return get_run_logger()
+    except MissingContextError:
+        return logging.getLogger(__name__)
 
 
 @task
-def fetch_tsv(url: str) -> pd.DataFrame:
-    """Download a TSV file from the given URL and return it as a DataFrame.
-
-    Args:
-        url: The HTTP(S) URL of the TSV file to download.
-
-    Returns:
-        A pandas DataFrame containing the parsed TSV content.
-    """
-    try:
-        logger = get_run_logger()
-    except MissingContextError:
-        logger = logging.getLogger(__name__)
+def download_tsv(url: str) -> pd.DataFrame:
+    """Download a TSV file from the given URL and return it as a DataFrame."""
+    logger = _get_logger()
     logger.info("Start download %s", url)
     df = pd.read_csv(url, sep="\t")
     size_kb = len(df.to_csv(sep="\t", index=False).encode()) / 1024
     logger.info("Download done. Downloaded %.1f KB", size_kb)
     return df
-
-
-@task
-def save_locally(df: pd.DataFrame, path: str) -> None:
-    """Save a DataFrame to the local filesystem as a TSV file.
-
-    Args:
-        df: The DataFrame to persist.
-        path: Absolute or relative file-system path where the TSV will be written.
-    """
-    df.to_csv(path, sep="\t", index=False)
-
-
-@task
-def store_to_mariadb(df: pd.DataFrame, table: str) -> None:
-    """Write a DataFrame to a MariaDB table, replacing it if it already exists.
-
-    Connection parameters are read from environment variables:
-    MARIADB_USER, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_DATABASE.
-
-    Args:
-        df: The DataFrame to persist.
-        table: Target table name in the database.
-    """
-    try:
-        logger = get_run_logger()
-    except MissingContextError:
-        logger = logging.getLogger(__name__)
-
-    db = os.environ.get("MARIADB_DATABASE", "test")
-    host = os.environ["MARIADB_HOST"]
-    logger.info("Connecting to %s/%s", host, db)
-
-    conn = pymysql.connect(
-        host=host,
-        user=os.environ["MARIADB_USER"],
-        password=os.environ["MARIADB_PASSWORD"],
-        database=db,
-    )
-    try:
-        with conn.cursor() as cursor:
-            cols = ", ".join(f"`{col}` TEXT" for col in df.columns)
-            cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
-            cursor.execute(f"CREATE TABLE `{table}` ({cols})")
-            logger.info("Inserting %d rows into `%s`", len(df), table)
-            placeholders = ", ".join(["%s"] * len(df.columns))
-            rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
-            cursor.executemany(f"INSERT INTO `{table}` VALUES ({placeholders})", rows)
-        conn.commit()
-        logger.info("Done. Table `%s` now has %d rows and %d columns.", table, len(df), len(df.columns))
-    finally:
-        conn.close()
-
-
-@flow
-def download_tsv(url: str = RKI_URL, path: str = DEFAULT_PATH) -> None:
-    """Fetch the GrippeWeb TSV from a URL and save it locally.
-
-    Args:
-        url: Source URL of the TSV file. Defaults to the RKI GrippeWeb dataset.
-        path: Destination path on the local filesystem. Defaults to /tmp/grippeweb.tsv.
-    """
-    df = fetch_tsv(url)
-    save_locally(df, path)
-    commit_to_lakefs(path)
-    store_to_mariadb(df, "grippeweb")
-
-
-if __name__ == "__main__":
-    download_tsv()

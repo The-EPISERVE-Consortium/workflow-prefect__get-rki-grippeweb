@@ -1,0 +1,34 @@
+"""Unit tests for flows/grippeweb_flow.py."""
+
+from unittest.mock import patch
+
+import pandas as pd
+
+from flows.grippeweb_flow import run_grippeweb
+
+
+SAMPLE_DF = pd.DataFrame(
+    {
+        "Kalenderwoche": ["2024-W01", "2024-W02"],
+        "Inzidenz": [12.3, 14.7],
+    }
+)
+
+
+def test_run_grippeweb_runs_steps_in_order():
+    """run_grippeweb should save locally, then upload to lakeFS, then store in MariaDB."""
+    call_order = []
+
+    with (
+        patch("flows.grippeweb_flow.download_tsv", return_value=SAMPLE_DF),
+        patch("flows.grippeweb_flow.save_locally", side_effect=lambda df, path: call_order.append(("save", path))),
+        patch("flows.grippeweb_flow.commit_to_lakefs", side_effect=lambda path: call_order.append(("lakefs", path))),
+        patch("flows.grippeweb_flow.store_to_mariadb", side_effect=lambda df, table: call_order.append(("mariadb", table))),
+    ):
+        run_grippeweb(url="https://example.com/data.tsv", path="/tmp/grippeweb.tsv")
+
+    assert call_order == [
+        ("save", "/tmp/grippeweb.tsv"),
+        ("lakefs", "/tmp/grippeweb.tsv"),
+        ("mariadb", "grippeweb"),
+    ]
