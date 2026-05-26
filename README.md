@@ -42,6 +42,12 @@ Deploy the state-level Germany COVID incidence dataset:
 PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_incidence_states
 ```
 
+Deploy the aggregated wastewater surveillance dataset:
+
+```bash
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.wastewater_surveillance_aggregate
+```
+
 Add more dataset deployments by creating additional modules under `deploy/` that call `deploy_dataset(...)` with a new parameter set.
 
 ## CI
