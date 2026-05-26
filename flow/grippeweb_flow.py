@@ -2,21 +2,18 @@
 
 from prefect import flow
 
+from config_default import (
+    DEFAULT_LAKEFS_BRANCH,
+    DEFAULT_LAKEFS_OBJECT_PATH,
+    DEFAULT_LAKEFS_REPO,
+    DEFAULT_MARIADB_DATABASE,
+    DEFAULT_PATH,
+    RKI_URL,
+)
 from tasks.commit_to_lakefs import commit_to_lakefs
 from tasks.download_tsv import download_tsv
 from tasks.save_locally import save_locally
 from tasks.store_to_mariadb import store_to_mariadb
-
-RKI_URL = (
-    "https://raw.githubusercontent.com/robert-koch-institut/"
-    "GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/"
-    "GrippeWeb_Daten_des_Wochenberichts.tsv"
-)
-DEFAULT_PATH = "/tmp/grippeweb.tsv"
-DEFAULT_LAKEFS_REPO = "sandbox"
-DEFAULT_LAKEFS_BRANCH = "main"
-DEFAULT_LAKEFS_OBJECT_PATH = "RAW/RKI/grippeweb.tsv"
-DEFAULT_MARIADB_DATABASE = "test"
 
 
 @flow

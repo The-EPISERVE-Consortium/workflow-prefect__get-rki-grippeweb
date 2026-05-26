@@ -8,16 +8,16 @@ Run this script once (or in CI) after the Docker image has been pushed to GHCR:
 import os
 from json import JSONDecodeError
 
-from prefect.runner.storage import GitRepository
-from flow.grippeweb_flow import (
+from config_default import (
     DEFAULT_LAKEFS_BRANCH,
     DEFAULT_LAKEFS_OBJECT_PATH,
     DEFAULT_LAKEFS_REPO,
     DEFAULT_MARIADB_DATABASE,
     DEFAULT_PATH,
     RKI_URL,
-    run_grippeweb,
 )
+from flow.grippeweb_flow import run_grippeweb
+from prefect.runner.storage import GitRepository
 
 GITHUB_REPO_URL = "https://github.com/The-EPISERVE-Consortium/workflow-prefect__get-rki-grippeweb"
 
