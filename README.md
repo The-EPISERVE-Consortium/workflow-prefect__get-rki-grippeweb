@@ -1,29 +1,31 @@
 # workflow-prefect__get-rki-grippeweb
 
-Prefect 3 workflow that downloads the [RKI GrippeWeb weekly report](https://github.com/robert-koch-institut/GrippeWeb_Daten_des_Wochenberichts) TSV and saves it locally.
+Prefect 3 workflow code for downloading TSV datasets from Git-backed sources, saving them locally, publishing them to lakeFS, and loading them into MariaDB. Dataset-specific deployments live under `deploy/`.
 
 ## Structure
 
 | Path | Purpose |
 |---|---|
-| `flow/grippeweb_flow.py` | Prefect flow orchestration |
+| `flow/dataset_flow.py` | Generic Prefect flow orchestration |
 | `tasks/*.py` | Individual Prefect tasks |
+| `deploy/common.py` | Shared Prefect deployment helper |
+| `deploy/*.py` | Dataset-specific deployment modules |
 | `tests/` | Unit tests (pytest) |
-| `deploy.py` | Programmatic deployment to `kubernetes-pool` |
 | `Dockerfile` | Image based on `prefecthq/prefect:3.7.1-python3.11` |
 
 ## Run locally
 
 ```bash
 pip install -r requirements.txt
-python flow/grippeweb_flow.py       # writes /tmp/grippeweb.tsv
 pytest tests/
 ```
+
+Run the generic flow directly by supplying all required parameters from Python. For example, `deploy/grippeweb.py` shows the complete parameter set for the GrippeWeb dataset.
 
 ## Deploy
 
 ```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python deploy.py
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.grippeweb
 ```
 
 ## CI

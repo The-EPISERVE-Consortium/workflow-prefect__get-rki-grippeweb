@@ -1,4 +1,4 @@
-"""Prefect task for saving the downloaded TSV to local storage."""
+"""Prefect task for saving a downloaded TSV to local storage."""
 
 import pandas as pd
 from prefect import task

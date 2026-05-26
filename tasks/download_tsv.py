@@ -1,4 +1,4 @@
-"""Prefect task for downloading the RKI GrippeWeb TSV."""
+"""Prefect task for downloading a TSV dataset into a DataFrame."""
 
 import pandas as pd
 from prefect import task

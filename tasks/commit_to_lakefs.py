@@ -7,9 +7,6 @@ from prefect import task
 
 from tasks._logging import get_logger
 
-LAKEFS_COMMIT_MESSAGE = "new version from RKI"
-
-
 def _get_lakefs_repository(repo: str):
     """Create a lakeFS repository handle from environment-based connection settings."""
     try:
@@ -32,7 +29,7 @@ def commit_to_lakefs(
     repo: str,
     branch: str,
     object_path: str,
-    commit_message: str = LAKEFS_COMMIT_MESSAGE,
+    commit_message: str,
 ) -> None:
     """Upload the saved TSV to lakeFS and create a commit on the target branch."""
     logger = get_logger(__name__)
