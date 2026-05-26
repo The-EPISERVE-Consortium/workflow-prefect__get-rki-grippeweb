@@ -1,26 +1,16 @@
 """Prefect task for uploading the saved TSV to lakeFS and committing it."""
 
-import logging
 import os
 from pathlib import Path
 
-from prefect import get_run_logger, task
-from prefect.exceptions import MissingContextError
+from prefect import task
+
+from tasks._logging import get_logger
 
 LAKEFS_REPO = "sandbox"
 LAKEFS_BRANCH = "main"
 LAKEFS_OBJECT_PATH = "RAW/RKI/grippeweb.tsv"
 LAKEFS_COMMIT_MESSAGE = "new version from RKI"
-
-
-def _get_logger() -> logging.Logger:
-    """Return a Prefect run logger when available, otherwise a standard logger."""
-    try:
-        return get_run_logger()
-    except MissingContextError:
-        return logging.getLogger(__name__)
-
-
 def _get_lakefs_branch():
     """Create a lakeFS branch handle from environment-based connection settings."""
     try:
@@ -40,7 +30,7 @@ def _get_lakefs_branch():
 @task
 def commit_to_lakefs(path: str) -> None:
     """Upload the saved TSV to lakeFS and create a commit on the target branch."""
-    logger = _get_logger()
+    logger = get_logger(__name__)
     branch = _get_lakefs_branch()
     local_path = Path(path)
 

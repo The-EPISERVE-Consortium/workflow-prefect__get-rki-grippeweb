@@ -1,25 +1,17 @@
 """Prefect task for writing the downloaded TSV data into MariaDB."""
 
-import logging
 import os
 
 import pymysql
-from prefect import get_run_logger, task
-from prefect.exceptions import MissingContextError
+from prefect import task
 
-
-def _get_logger() -> logging.Logger:
-    """Return a Prefect run logger when available, otherwise a standard logger."""
-    try:
-        return get_run_logger()
-    except MissingContextError:
-        return logging.getLogger(__name__)
+from tasks._logging import get_logger
 
 
 @task
 def store_to_mariadb(df, table: str) -> None:
     """Write a DataFrame to a MariaDB table, replacing it if it already exists."""
-    logger = _get_logger()
+    logger = get_logger(__name__)
     db = os.environ.get("MARIADB_DATABASE", "test")
     host = os.environ["MARIADB_HOST"]
     logger.info("Connecting to %s/%s", host, db)
