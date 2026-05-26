@@ -3,7 +3,7 @@
 from deploy.common import deploy_dataset
 from flow.dataset_flow import run_dataset
 
-DEPLOYMENT_NAME = "corona_numbers_germany"
+DEPLOYMENT_NAME = "corona_incidence_germany"
 PARAMETERS = {
     "source_url": (
         "https://raw.githubusercontent.com/robert-koch-institut/"
@@ -16,7 +16,7 @@ PARAMETERS = {
     "lakefs_branch": "main",
     "lakefs_object_path": "RAW/RKI/covid_germany.tsv",
     "lakefs_commit_message": "new version from RKI",
-    "mariadb_table": "corona_numbers_germany",
+    "mariadb_table": "corona_incidence_germany",
     "mariadb_database": "test",
 }
 

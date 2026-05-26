@@ -33,13 +33,13 @@ PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.grippeweb
 Deploy the Germany COVID incidence dataset:
 
 ```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_numbers_germany
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_incidence_germany
 ```
 
 Deploy the state-level Germany COVID incidence dataset:
 
 ```bash
-PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_numbers_states
+PREFECT_API_URL=https://<your-prefect-server>/api python -m deploy.corona_incidence_states
 ```
 
 Add more dataset deployments by creating additional modules under `deploy/` that call `deploy_dataset(...)` with a new parameter set.
