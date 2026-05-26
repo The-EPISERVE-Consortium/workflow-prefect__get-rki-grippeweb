@@ -1,3 +1,9 @@
+defaults:
+  lakefs_repo: sandbox
+  lakefs_branch: main
+  lakefs_commit_message: new version from RKI
+  mariadb_database: test
+
 datasets:
   grippeweb:
     enabled: true
@@ -6,12 +12,9 @@ datasets:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/GrippeWeb_Daten_des_Wochenberichts.tsv
       source_delimiter: "\t"
       local_path: /tmp/grippeweb.tsv
-      lakefs_repo: sandbox
-      lakefs_branch: main
       lakefs_object_path: RAW/RKI/grippeweb.tsv
-      lakefs_commit_message: new version from RKI
       mariadb_table: grippeweb
-      mariadb_database: test
+
   corona_incidence_germany:
     enabled: true
     deployment_name: corona_incidence_germany
@@ -19,12 +22,9 @@ datasets:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/COVID-19_7-Tage-Inzidenz_in_Deutschland/refs/heads/main/COVID-19-Faelle_7-Tage-Inzidenz_Deutschland.csv
       source_delimiter: ","
       local_path: /tmp/covid_germany.tsv
-      lakefs_repo: sandbox
-      lakefs_branch: main
       lakefs_object_path: RAW/RKI/covid_germany.tsv
-      lakefs_commit_message: new version from RKI
       mariadb_table: corona_incidence_germany
-      mariadb_database: test
+
   corona_incidence_states:
     enabled: true
     deployment_name: corona_incidence_states
@@ -32,12 +32,9 @@ datasets:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/COVID-19_7-Tage-Inzidenz_in_Deutschland/refs/heads/main/COVID-19-Faelle_7-Tage-Inzidenz_Bundeslaender.csv
       source_delimiter: ","
       local_path: /tmp/covid_states.tsv
-      lakefs_repo: sandbox
-      lakefs_branch: main
       lakefs_object_path: RAW/RKI/covid_states.tsv
-      lakefs_commit_message: new version from RKI
       mariadb_table: corona_incidence_states
-      mariadb_database: test
+
   wastewater_surveillance_aggregate:
     enabled: true
     deployment_name: wastewater_surveillance_aggregate
@@ -45,9 +42,5 @@ datasets:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_aggregierte_kurve.tsv
       source_delimiter: "\t"
       local_path: /tmp/wastewater_surveillance_aggregate.tsv
-      lakefs_repo: sandbox
-      lakefs_branch: main
       lakefs_object_path: RAW/RKI/wastewater_surveillance_aggregate.tsv
-      lakefs_commit_message: new version from RKI
       mariadb_table: wastewater_surveillance_aggregate
-      mariadb_database: test

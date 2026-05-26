@@ -37,21 +37,29 @@ def _require_prefect_api_url() -> str:
     return prefect_api_url
 
 
-def _load_registry() -> dict[str, dict]:
+def _load_registry() -> tuple[dict[str, str], dict[str, dict]]:
     with REGISTRY_PATH.open(encoding="utf-8") as infile:
         data = yaml.safe_load(infile) or {}
 
+    defaults = data.get("defaults", {})
     datasets = data.get("datasets")
+    if not isinstance(defaults, dict):
+        raise ValueError("deploy/datasets.yaml 'defaults' must be a mapping when present.")
     if not isinstance(datasets, dict) or not datasets:
         raise ValueError("deploy/datasets.yaml must contain a non-empty top-level 'datasets' mapping.")
-    return datasets
+    return defaults, datasets
 
 
 def get_dataset_keys() -> list[str]:
-    return sorted(_load_registry().keys())
+    _, datasets = _load_registry()
+    return sorted(datasets.keys())
 
 
-def _validate_dataset_config(dataset_key: str, config: dict) -> tuple[str, dict[str, str]]:
+def _validate_dataset_config(
+    dataset_key: str,
+    config: dict,
+    defaults: dict[str, str],
+) -> tuple[str, dict[str, str]]:
     if not isinstance(config, dict):
         raise ValueError(f"Dataset '{dataset_key}' must be a mapping in deploy/datasets.yaml.")
 
@@ -62,12 +70,13 @@ def _validate_dataset_config(dataset_key: str, config: dict) -> tuple[str, dict[
     if not isinstance(parameters, dict):
         raise ValueError(f"Dataset '{dataset_key}' must define a 'parameters' mapping.")
 
-    missing = sorted(REQUIRED_PARAMETERS.difference(parameters))
+    merged_parameters = {**defaults, **parameters}
+    missing = sorted(REQUIRED_PARAMETERS.difference(merged_parameters))
     if missing:
         missing_list = ", ".join(missing)
         raise ValueError(f"Dataset '{dataset_key}' is missing required parameter(s): {missing_list}.")
 
-    return deployment_name, parameters
+    return deployment_name, merged_parameters
 
 
 def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_api_url: str) -> None:
@@ -98,7 +107,7 @@ def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_ap
 
 def deploy_from_registry(dataset_key: str | None = None) -> None:
     """Deploy one named dataset or all enabled datasets from deploy/datasets.yaml."""
-    datasets = _load_registry()
+    defaults, datasets = _load_registry()
     prefect_api_url = _require_prefect_api_url()
 
     if dataset_key:
@@ -106,7 +115,7 @@ def deploy_from_registry(dataset_key: str | None = None) -> None:
         if config is None:
             available = ", ".join(sorted(datasets))
             raise ValueError(f"Unknown dataset '{dataset_key}'. Available datasets: {available}")
-        deployment_name, parameters = _validate_dataset_config(dataset_key, config)
+        deployment_name, parameters = _validate_dataset_config(dataset_key, config, defaults)
         _deploy_dataset(deployment_name, parameters, prefect_api_url)
         return
 
@@ -114,5 +123,5 @@ def deploy_from_registry(dataset_key: str | None = None) -> None:
         config = datasets[key]
         if not config.get("enabled", True):
             continue
-        deployment_name, parameters = _validate_dataset_config(key, config)
+        deployment_name, parameters = _validate_dataset_config(key, config, defaults)
         _deploy_dataset(deployment_name, parameters, prefect_api_url)

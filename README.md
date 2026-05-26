@@ -8,8 +8,9 @@ Prefect 3 workflow code for downloading delimited datasets from Git-backed sourc
 |---|---|
 | `flow/dataset_flow.py` | Generic Prefect flow orchestration |
 | `tasks/*.py` | Individual Prefect tasks |
-| `deploy/__main__.py` | Single deployment CLI entrypoint |
-| `deploy/common.py` | YAML-backed Prefect deployment helper |
+| `deploy/__main__.py` | Package entrypoint for `python -m deploy` |
+| `deploy/deployer.py` | Argument parsing for deployment commands |
+| `deploy/deploy_registry.py` | YAML-backed Prefect deployment helper |
 | `deploy/datasets.yaml` | Dataset-specific deployment parameters |
 | `tests/` | Unit tests (pytest) |
 | `Dockerfile` | Image based on `prefecthq/prefect:3.7.1-python3.11` |
