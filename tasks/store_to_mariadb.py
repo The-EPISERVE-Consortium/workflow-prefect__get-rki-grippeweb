@@ -19,8 +19,10 @@ def store_to_mariadb(df, table: str, database: str) -> None:
         host=host,
         user=os.environ["MARIADB_USER"],
         password=os.environ["MARIADB_PASSWORD"],
-        database=database,
     )
+    with conn.cursor() as cursor:
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{database}`")
+        cursor.execute(f"USE `{database}`")
     try:
         with conn.cursor() as cursor:
             cols = ", ".join(f"`{col}` TEXT" for col in df.columns)

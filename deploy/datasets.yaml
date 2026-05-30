@@ -2,7 +2,7 @@ defaults:
   lakefs_repo: sandbox
   lakefs_branch: main
   lakefs_commit_message: new version from RKI
-  mariadb_database: test
+  mariadb_database: episerve-raw-data
 
 datasets:
   grippeweb:
