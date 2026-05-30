@@ -34,7 +34,7 @@ def test_store_to_mariadb_writes_and_commits():
     with patch("tasks.store_to_mariadb.pymysql.connect", return_value=mock_conn):
         store_to_mariadb.fn(SAMPLE_DF, "grippeweb", "db")
 
-    assert mock_cursor.execute.call_count == 2
+    assert mock_cursor.execute.call_count == 4  # CREATE DATABASE, USE, DROP TABLE, CREATE TABLE
     mock_cursor.executemany.assert_called_once()
     call_args = mock_cursor.executemany.call_args
     assert "grippeweb" in call_args.args[0]
