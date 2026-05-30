@@ -7,7 +7,7 @@ defaults:
 datasets:
   grippeweb:
     enabled: true
-    deployment_name: grippeweb-downloader
+    deployment_name: download__grippeweb
     parameters:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/GrippeWeb_Daten_des_Wochenberichts/refs/heads/main/GrippeWeb_Daten_des_Wochenberichts.tsv
       source_delimiter: "\t"
@@ -17,7 +17,7 @@ datasets:
 
   corona_incidence_germany:
     enabled: true
-    deployment_name: corona_incidence_germany
+    deployment_name: download__corona_incidence_germany
     parameters:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/COVID-19_7-Tage-Inzidenz_in_Deutschland/refs/heads/main/COVID-19-Faelle_7-Tage-Inzidenz_Deutschland.csv
       source_delimiter: ","
@@ -27,7 +27,7 @@ datasets:
 
   corona_incidence_states:
     enabled: true
-    deployment_name: corona_incidence_states
+    deployment_name: download__corona_incidence_states
     parameters:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/COVID-19_7-Tage-Inzidenz_in_Deutschland/refs/heads/main/COVID-19-Faelle_7-Tage-Inzidenz_Bundeslaender.csv
       source_delimiter: ","
@@ -37,7 +37,7 @@ datasets:
 
   wastewater_surveillance_aggregate:
     enabled: true
-    deployment_name: wastewater_surveillance_aggregate
+    deployment_name: download__wastewater_surveillance_aggregate
     parameters:
       source_url: https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_aggregierte_kurve.tsv
       source_delimiter: "\t"
