@@ -46,6 +46,16 @@ datasets:
       lakefs_object_path: RAW/RKI/wastewater_surveillance_aggregate.tsv
       mariadb_table: wastewater_surveillance_aggregate
 
+  notaufnahme_surveillance:
+    enabled: true
+    deployment_name: download__notaufnahme_surveillance
+    parameters:
+      source_url: https://raw.githubusercontent.com/robert-koch-institut/Daten_der_Notaufnahmesurveillance/refs/heads/main/Notaufnahmesurveillance_Zeitreihen_Syndrome.tsv
+      source_delimiter: "\t"
+      local_path: /tmp/notaufnahme_surveillance.tsv
+      lakefs_object_path: RAW/RKI/notaufnahme_surveillance.tsv
+      mariadb_table: notaufnahme_surveillance
+
   weather_berlin_daily:
     enabled: true
     deployment_name: download__weather_berlin_daily
