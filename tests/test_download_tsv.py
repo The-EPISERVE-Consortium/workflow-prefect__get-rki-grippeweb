@@ -20,7 +20,15 @@ def test_download_tsv_returns_dataframe():
     with patch("tasks.download_tsv.pd.read_csv", return_value=SAMPLE_DF) as mock_read:
         result = download_tsv.fn("https://example.com/data.tsv", "\t")
 
-    mock_read.assert_called_once_with("https://example.com/data.tsv", sep="\t")
+    mock_read.assert_called_once_with("https://example.com/data.tsv", sep="\t", skiprows=0)
     assert isinstance(result, pd.DataFrame)
     assert list(result.columns) == ["Kalenderwoche", "Inzidenz"]
     assert len(result) == 2
+
+
+def test_download_tsv_passes_skiprows():
+    """download_tsv should forward skiprows to pd.read_csv."""
+    with patch("tasks.download_tsv.pd.read_csv", return_value=SAMPLE_DF) as mock_read:
+        download_tsv.fn("https://example.com/data.csv", ",", skiprows=3)
+
+    mock_read.assert_called_once_with("https://example.com/data.csv", sep=",", skiprows=3)

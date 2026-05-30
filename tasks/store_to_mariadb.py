@@ -9,8 +9,12 @@ from tasks._logging import get_logger
 
 
 @task
-def store_to_mariadb(df, table: str, database: str) -> None:
-    """Write a DataFrame to a MariaDB table, replacing it if it already exists."""
+def store_to_mariadb(df, table: str, database: str, primary_key: str | None = None) -> None:
+    """Write a DataFrame to a MariaDB table.
+
+    Without primary_key: replaces the table on each run.
+    With primary_key: upserts rows so repeated runs with overlapping data are idempotent.
+    """
     logger = get_logger(__name__)
     host = os.environ["MARIADB_HOST"]
     logger.info("Connecting to %s/%s", host, database)
@@ -25,14 +29,35 @@ def store_to_mariadb(df, table: str, database: str) -> None:
         cursor.execute(f"USE `{database}`")
     try:
         with conn.cursor() as cursor:
-            cols = ", ".join(f"`{col}` TEXT" for col in df.columns)
-            cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
-            cursor.execute(f"CREATE TABLE `{table}` ({cols})")
-            logger.info("Inserting %d rows into `%s`", len(df), table)
-            placeholders = ", ".join(["%s"] * len(df.columns))
-            rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
-            cursor.executemany(f"INSERT INTO `{table}` VALUES ({placeholders})", rows)
+            if primary_key:
+                _upsert(cursor, df, table, primary_key, logger)
+            else:
+                _replace(cursor, df, table, logger)
         conn.commit()
         logger.info("Done. Table `%s` now has %d rows and %d columns.", table, len(df), len(df.columns))
     finally:
         conn.close()
+
+
+def _replace(cursor, df, table: str, logger) -> None:
+    cols = ", ".join(f"`{col}` TEXT" for col in df.columns)
+    cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
+    cursor.execute(f"CREATE TABLE `{table}` ({cols})")
+    logger.info("Inserting %d rows into `%s`", len(df), table)
+    placeholders = ", ".join(["%s"] * len(df.columns))
+    rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
+    cursor.executemany(f"INSERT INTO `{table}` VALUES ({placeholders})", rows)
+
+
+def _upsert(cursor, df, table: str, primary_key: str, logger) -> None:
+    cols = ", ".join(
+        f"`{col}` TEXT PRIMARY KEY" if col == primary_key else f"`{col}` TEXT"
+        for col in df.columns
+    )
+    cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table}` ({cols})")
+    logger.info("Upserting %d rows into `%s`", len(df), table)
+    placeholders = ", ".join(["%s"] * len(df.columns))
+    updates = ", ".join(f"`{col}`=VALUES(`{col}`)" for col in df.columns if col != primary_key)
+    sql = f"INSERT INTO `{table}` VALUES ({placeholders}) ON DUPLICATE KEY UPDATE {updates}"
+    rows = [tuple(row) for row in df.itertuples(index=False, name=None)]
+    cursor.executemany(sql, rows)

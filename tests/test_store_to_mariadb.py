@@ -41,3 +41,28 @@ def test_store_to_mariadb_writes_and_commits():
     assert len(call_args.args[1]) == len(SAMPLE_DF)
     mock_conn.commit.assert_called_once()
     mock_conn.close.assert_called_once()
+
+
+@patch.dict(
+    os.environ,
+    {
+        "MARIADB_HOST": "localhost",
+        "MARIADB_USER": "user",
+        "MARIADB_PASSWORD": "pass",
+    },
+)
+def test_store_to_mariadb_upserts_when_primary_key_given():
+    """store_to_mariadb should use INSERT ... ON DUPLICATE KEY UPDATE when primary_key is set."""
+    mock_cursor = MagicMock()
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+    mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+
+    with patch("tasks.store_to_mariadb.pymysql.connect", return_value=mock_conn):
+        store_to_mariadb.fn(SAMPLE_DF, "weather", "db", primary_key="Kalenderwoche")
+
+    assert mock_cursor.execute.call_count == 3  # CREATE DATABASE, USE, CREATE TABLE IF NOT EXISTS
+    mock_cursor.executemany.assert_called_once()
+    sql = mock_cursor.executemany.call_args.args[0]
+    assert "ON DUPLICATE KEY UPDATE" in sql
+    assert len(mock_cursor.executemany.call_args.args[1]) == len(SAMPLE_DF)

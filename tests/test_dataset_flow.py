@@ -31,7 +31,7 @@ def test_run_dataset_runs_steps_in_order():
         ),
         patch(
             "flow.dataset_flow.store_to_mariadb",
-            side_effect=lambda df, table, database: call_order.append(("mariadb", table, database)),
+            side_effect=lambda df, table, database, primary_key=None: call_order.append(("mariadb", table, database, primary_key)),
         ),
     ):
         run_dataset(
@@ -49,7 +49,7 @@ def test_run_dataset_runs_steps_in_order():
     assert call_order == [
         ("save", "/tmp/grippeweb.tsv"),
         ("lakefs", "/tmp/grippeweb.tsv", "sandbox", "main", "RAW/RKI/grippeweb.tsv", "new version from RKI"),
-        ("mariadb", "grippeweb", "test"),
+        ("mariadb", "grippeweb", "test", None),
     ]
 
 

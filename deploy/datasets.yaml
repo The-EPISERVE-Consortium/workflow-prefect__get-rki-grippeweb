@@ -44,3 +44,16 @@ datasets:
       local_path: /tmp/wastewater_surveillance_aggregate.tsv
       lakefs_object_path: RAW/RKI/wastewater_surveillance_aggregate.tsv
       mariadb_table: wastewater_surveillance_aggregate
+
+  weather_berlin_daily:
+    enabled: true
+    deployment_name: download__weather_berlin_daily
+    parameters:
+      source_url: "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean&past_days=10&format=csv&timezone=Europe%2FBerlin"
+      source_delimiter: ","
+      source_skiprows: 3
+      local_path: /tmp/weather_berlin_daily.csv
+      lakefs_object_path: RAW/open-meteo/weather_berlin_daily.csv
+      lakefs_commit_message: new version from Open-Meteo
+      mariadb_table: weather_berlin_daily
+      mariadb_primary_key: time

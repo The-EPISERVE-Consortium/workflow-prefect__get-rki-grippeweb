@@ -30,6 +30,8 @@ def run_dataset(
     lakefs_commit_message: str,
     mariadb_table: str,
     mariadb_database: str,
+    source_skiprows: int = 0,
+    mariadb_primary_key: str | None = None,
 ) -> None:
     """Fetch a TSV dataset, persist it locally, and publish it downstream."""
     _validate_required_parameters(
@@ -45,7 +47,7 @@ def run_dataset(
             "mariadb_database": mariadb_database,
         }
     )
-    df = download_tsv(source_url, source_delimiter)
+    df = download_tsv(source_url, source_delimiter, source_skiprows)
     save_locally(df, local_path)
     commit_to_lakefs(local_path, lakefs_repo, lakefs_branch, lakefs_object_path, lakefs_commit_message)
-    store_to_mariadb(df, mariadb_table, mariadb_database)
+    store_to_mariadb(df, mariadb_table, mariadb_database, mariadb_primary_key)
