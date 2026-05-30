@@ -3,6 +3,7 @@ defaults:
   lakefs_branch: main
   lakefs_commit_message: new version from RKI
   mariadb_database: episerve-raw-data
+  run_daily: true
 
 datasets:
   grippeweb:

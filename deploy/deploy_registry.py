@@ -59,7 +59,7 @@ def _validate_dataset_config(
     dataset_key: str,
     config: dict,
     defaults: dict[str, str],
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str], bool]:
     if not isinstance(config, dict):
         raise ValueError(f"Dataset '{dataset_key}' must be a mapping in deploy/datasets.yaml.")
 
@@ -71,17 +71,20 @@ def _validate_dataset_config(
         raise ValueError(f"Dataset '{dataset_key}' must define a 'parameters' mapping.")
 
     merged_parameters = {**defaults, **parameters}
+    run_daily = merged_parameters.pop("run_daily", True)
     missing = sorted(REQUIRED_PARAMETERS.difference(merged_parameters))
     if missing:
         missing_list = ", ".join(missing)
         raise ValueError(f"Dataset '{dataset_key}' is missing required parameter(s): {missing_list}.")
 
-    return deployment_name, merged_parameters
+    return deployment_name, merged_parameters, bool(run_daily)
 
 
-def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_api_url: str) -> None:
+def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_api_url: str, run_daily: bool) -> None:
     """Deploy one dataset configuration to the shared work pool."""
     os.environ["PREFECT_API_URL"] = prefect_api_url
+
+    schedule_kwargs = {"cron": "0 1 * * *", "timezone": "Europe/Berlin"} if run_daily else {}
 
     try:
         run_dataset.from_source(
@@ -95,6 +98,7 @@ def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_ap
                 "image": DOCKER_IMAGE,
                 "image_pull_policy": "Always",
             },
+            **schedule_kwargs,
         )
     except JSONDecodeError as exc:
         raise RuntimeError(
@@ -115,13 +119,13 @@ def deploy_from_registry(dataset_key: str | None = None) -> None:
         if config is None:
             available = ", ".join(sorted(datasets))
             raise ValueError(f"Unknown dataset '{dataset_key}'. Available datasets: {available}")
-        deployment_name, parameters = _validate_dataset_config(dataset_key, config, defaults)
-        _deploy_dataset(deployment_name, parameters, prefect_api_url)
+        deployment_name, parameters, run_daily = _validate_dataset_config(dataset_key, config, defaults)
+        _deploy_dataset(deployment_name, parameters, prefect_api_url, run_daily)
         return
 
     for key in sorted(datasets):
         config = datasets[key]
         if not config.get("enabled", True):
             continue
-        deployment_name, parameters = _validate_dataset_config(key, config, defaults)
-        _deploy_dataset(deployment_name, parameters, prefect_api_url)
+        deployment_name, parameters, run_daily = _validate_dataset_config(key, config, defaults)
+        _deploy_dataset(deployment_name, parameters, prefect_api_url, run_daily)
