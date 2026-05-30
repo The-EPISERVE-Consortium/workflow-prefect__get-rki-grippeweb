@@ -51,7 +51,7 @@ def _replace(cursor, df, table: str, logger) -> None:
 
 def _upsert(cursor, df, table: str, primary_key: str, logger) -> None:
     cols = ", ".join(
-        f"`{col}` TEXT PRIMARY KEY" if col == primary_key else f"`{col}` TEXT"
+        f"`{col}` VARCHAR(255) PRIMARY KEY" if col == primary_key else f"`{col}` TEXT"
         for col in df.columns
     )
     cursor.execute(f"CREATE TABLE IF NOT EXISTS `{table}` ({cols})")
