@@ -1,5 +1,5 @@
 defaults:
-  lakefs_repo: sandbox
+  lakefs_repo: data-raw
   lakefs_branch: main
   lakefs_commit_message: new version from RKI
   mariadb_database: episerve-raw-data
