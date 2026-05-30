@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from json import JSONDecodeError
 
+from prefect.client.schemas.schedules import CronSchedule
 from prefect.runner.storage import GitRepository
 import yaml
 
@@ -84,7 +85,7 @@ def _deploy_dataset(deployment_name: str, parameters: dict[str, str], prefect_ap
     """Deploy one dataset configuration to the shared work pool."""
     os.environ["PREFECT_API_URL"] = prefect_api_url
 
-    schedule_kwargs = {"cron": "0 1 * * *", "timezone": "Europe/Berlin"} if run_daily else {}
+    schedule_kwargs = {"schedules": [CronSchedule(cron="0 1 * * *", timezone="Europe/Berlin")]} if run_daily else {}
 
     try:
         run_dataset.from_source(
